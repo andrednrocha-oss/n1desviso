@@ -1,13 +1,15 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, FilePlus2, ChevronRight, Activity } from 'lucide-react';
+import { LayoutDashboard, FilePlus2, ChevronRight, Activity, Cloud, CloudOff } from 'lucide-react';
 import DeviationForm from './components/DeviationForm.tsx';
 import Dashboard from './components/Dashboard.tsx';
+import { supabase } from './services/supabase.ts';
 
 type View = 'form' | 'dashboard';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('dashboard');
+  const isOnline = !!supabase;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -15,13 +17,34 @@ const App: React.FC = () => {
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center space-x-2">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Activity className="text-white" size={24} />
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="bg-blue-600 p-2 rounded-lg">
+                  <Activity className="text-white" size={24} />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-slate-900 leading-none">DeviTrack</h1>
+                  <p className="text-[10px] text-slate-500 font-medium tracking-widest uppercase">L1 Intelligence</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-slate-900 leading-none">DeviTrack</h1>
-                <p className="text-[10px] text-slate-500 font-medium tracking-widest uppercase">L1 Intelligence</p>
+              
+              {/* Connection Status Badge */}
+              <div className={`hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                isOnline 
+                ? 'bg-green-50 text-green-700 border-green-200' 
+                : 'bg-amber-50 text-amber-700 border-amber-200'
+              }`}>
+                {isOnline ? (
+                  <>
+                    <Cloud size={12} />
+                    <span>Sistema Online</span>
+                  </>
+                ) : (
+                  <>
+                    <CloudOff size={12} />
+                    <span>Modo Offline</span>
+                  </>
+                )}
               </div>
             </div>
 

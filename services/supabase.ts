@@ -1,9 +1,21 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Fix: Use process.env instead of import.meta.env to resolve TypeScript errors regarding ImportMeta
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+// Função auxiliar para buscar variáveis de forma segura em diferentes ambientes (Vite/Node/Browser)
+const getEnv = (key: string): string | undefined => {
+  if (typeof process !== 'undefined' && process.env && process.env[key]) {
+    return process.env[key];
+  }
+  // Fallback para import.meta.env (padrão Vite)
+  const metaEnv = (import.meta as any).env;
+  if (metaEnv && metaEnv[key]) {
+    return metaEnv[key];
+  }
+  return undefined;
+};
+
+const supabaseUrl = getEnv('VITE_SUPABASE_URL');
+const supabaseAnonKey = getEnv('VITE_SUPABASE_ANON_KEY');
 
 export const supabase = (supabaseUrl && supabaseAnonKey) 
   ? createClient(supabaseUrl, supabaseAnonKey) 
@@ -11,7 +23,8 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
 
 if (!supabase) {
   console.warn(
-    'Supabase: Variáveis VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY não encontradas. ' +
-    'O app funcionará apenas em modo offline.'
+    'DeviTrack: Chaves do Supabase não configuradas. Operando em modo OFFLINE (LocalStorage).'
   );
+} else {
+  console.log('DeviTrack: Conexão com Supabase estabelecida com sucesso. Operando em modo ONLINE.');
 }
