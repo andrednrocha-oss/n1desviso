@@ -1,0 +1,5 @@
+{
+  "name": "DeviTrack L1 - Gestão de Desvios de TI",
+  "description": "Sistema para registro e monitoramento de desvios operacionais de analistas de primeiro nível, com dashboard estatístico e geração de e-mails formais.",
+  "requestFramePermissions": []
+}
