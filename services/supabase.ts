@@ -1,13 +1,13 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Função segura para obter variáveis de ambiente
 const getEnv = (key: string): string | undefined => {
-  try {
-    return (window as any).process?.env?.[key] || (import.meta as any).env?.[key];
-  } catch {
-    return undefined;
-  }
+  // Tenta obter do process.env (Vite define ou Vercel runtime) ou import.meta.env
+  return (
+    (typeof process !== 'undefined' ? process.env?.[key] : undefined) ||
+    (import.meta as any).env?.[key] ||
+    (window as any).process?.env?.[key]
+  );
 };
 
 const supabaseUrl = getEnv('SUPABASE_URL');
