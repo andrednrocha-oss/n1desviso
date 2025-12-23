@@ -9,10 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react-dom": "^19.2.3",
     "react": "^19.2.3",
-    "lucide-react": "^0.462.0",
-    "recharts": "^2.13.0",
+    "react-dom": "^19.2.3",
+    "lucide-react": "0.462.0",
+    "recharts": "2.13.0",
     "@supabase/supabase-js": "2.45.4"
   },
   "devDependencies": {

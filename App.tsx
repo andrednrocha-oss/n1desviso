@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { LayoutDashboard, FilePlus2, ChevronRight, Activity } from 'lucide-react';
-import DeviationForm from './components/DeviationForm';
-import Dashboard from './components/Dashboard';
+import DeviationForm from './components/DeviationForm.tsx';
+import Dashboard from './components/Dashboard.tsx';
 
 type View = 'form' | 'dashboard';
 

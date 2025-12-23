@@ -12,9 +12,9 @@ import {
   PieChart,
   Pie
 } from 'recharts';
-import { getDeviations } from '../services/storage';
-import { supabase } from '../services/supabase';
-import { Deviation } from '../types';
+import { getDeviations } from '../services/storage.ts';
+import { supabase } from '../services/supabase.ts';
+import { Deviation } from '../types.ts';
 import { AlertCircle, Users, MapPin, BarChart3, Loader2, DatabaseZap } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -28,6 +28,8 @@ const Dashboard: React.FC = () => {
       try {
         const deviations = await getDeviations();
         setData(deviations);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
       } finally {
         setLoading(false);
       }
@@ -207,7 +209,7 @@ const Dashboard: React.FC = () => {
                   <div className="w-full bg-slate-100 rounded-full h-1.5 max-w-[100px]">
                     <div 
                       className="bg-blue-600 h-1.5 rounded-full" 
-                      style={{ width: `${(analyst.count / stats.total) * 100}%` }}
+                      style={{ width: `${(analyst.count / Math.max(stats.total, 1)) * 100}%` }}
                     ></div>
                   </div>
                 </td>

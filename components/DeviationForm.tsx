@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { EscalationLevel, CallValidation, Deviation } from '../types';
-import { saveDeviation } from '../services/storage';
+import { EscalationLevel, CallValidation, Deviation } from '../types.ts';
+import { saveDeviation } from '../services/storage.ts';
 import { 
   Send, 
   User, 
@@ -16,6 +16,13 @@ import {
 } from 'lucide-react';
 
 const ESCALATIONS: EscalationLevel[] = ['1ª Escalada', '2ª Escalada', '3ª Escalada', '4ª Escalada', '5ª Escalada'];
+
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
 
 const DeviationForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -45,7 +52,7 @@ const DeviationForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
     
     try {
       const newDeviation: Deviation = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         ...formData,
         validation,
         createdAt: new Date().toISOString(),
@@ -54,7 +61,6 @@ const DeviationForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
       await saveDeviation(newDeviation);
       onSuccess();
       
-      // Reset form
       setFormData({
         analystName: '',
         escalationLevel: '1ª Escalada',
@@ -72,6 +78,7 @@ const DeviationForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
         closureAuth: { name: '', department: '' },
       });
     } catch (error) {
+      console.error(error);
       alert('Erro ao salvar no banco de dados. Verifique sua conexão.');
     } finally {
       setLoading(false);
@@ -125,7 +132,7 @@ Equipe de Qualidade L1`;
               required
               disabled={loading}
               type="text"
-              className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all disabled:opacity-50"
+              className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-50"
               placeholder="Ex: João Silva"
               value={formData.analystName}
               onChange={(e) => setFormData({...formData, analystName: e.target.value})}

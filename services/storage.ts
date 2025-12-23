@@ -1,16 +1,11 @@
 
-import { Deviation } from '../types';
-import { supabase } from './supabase';
+import { Deviation } from '../types.ts';
+import { supabase } from './supabase.ts';
 
 const LOCAL_STORAGE_KEY = 'devitrack_deviations_offline_fallback';
 
-/**
- * Saves a deviation. Prioritizes Supabase if configured, 
- * otherwise falls back to browser localStorage.
- */
 export const saveDeviation = async (deviation: Deviation): Promise<void> => {
   if (!supabase) {
-    console.warn('Supabase not configured. Using localStorage fallback.');
     const existing = await getDeviations();
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([...existing, deviation]));
     return;
@@ -21,15 +16,10 @@ export const saveDeviation = async (deviation: Deviation): Promise<void> => {
     .insert([deviation]);
 
   if (error) {
-    console.error('Error saving deviation to Supabase:', error);
     throw error;
   }
 };
 
-/**
- * Retrieves all deviations. Prioritizes Supabase if configured, 
- * otherwise falls back to browser localStorage.
- */
 export const getDeviations = async (): Promise<Deviation[]> => {
   if (!supabase) {
     const data = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -42,8 +32,6 @@ export const getDeviations = async (): Promise<Deviation[]> => {
     .order('createdAt', { ascending: false });
 
   if (error) {
-    console.error('Error fetching deviations from Supabase:', error);
-    // Even if Supabase is configured, if the request fails, we could try loading from local cache
     const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
     return localData ? JSON.parse(localData) : [];
   }
@@ -51,9 +39,6 @@ export const getDeviations = async (): Promise<Deviation[]> => {
   return data || [];
 };
 
-/**
- * Deletes a deviation by ID.
- */
 export const deleteDeviation = async (id: string): Promise<void> => {
   if (!supabase) {
     const existing = await getDeviations();
@@ -67,7 +52,6 @@ export const deleteDeviation = async (id: string): Promise<void> => {
     .eq('id', id);
 
   if (error) {
-    console.error('Error deleting deviation from Supabase:', error);
     throw error;
   }
 };
