@@ -12,7 +12,8 @@ import {
   Mail, 
   Copy,
   CheckCircle2,
-  Loader2
+  Loader2,
+  HardDrive
 } from 'lucide-react';
 
 const ESCALATIONS: EscalationLevel[] = ['1ª Escalada', '2ª Escalada', '3ª Escalada', '4ª Escalada', '5ª Escalada'];
@@ -36,9 +37,13 @@ const DeviationForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
 
   const [validation, setValidation] = useState<CallValidation>({
     calledCustomer: false,
+    evaluatedEquipment: false,
     customerDetails: { name: '', matricula: '' },
-    saques: false,
-    depositos: false,
+    dispenser: false,
+    depositary: false,
+    barcodeReader: false,
+    printer: false,
+    checkDepositary: false,
     sensoriamento: false,
     smartPower: false,
     closureAuth: { name: '', department: '' },
@@ -70,9 +75,13 @@ const DeviationForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
       });
       setValidation({
         calledCustomer: false,
+        evaluatedEquipment: false,
         customerDetails: { name: '', matricula: '' },
-        saques: false,
-        depositos: false,
+        dispenser: false,
+        depositary: false,
+        barcodeReader: false,
+        printer: false,
+        checkDepositary: false,
         sensoriamento: false,
         smartPower: false,
         closureAuth: { name: '', department: '' },
@@ -84,6 +93,8 @@ const DeviationForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
       setLoading(false);
     }
   };
+
+  const getStatusText = (val: boolean) => val ? 'Validado' : 'Pendente';
 
   const emailBody = `Olá, prezados responsáveis,
 
@@ -98,10 +109,14 @@ Dados do Chamado:
 
 Validações Realizadas:
 - Ligou para o Cliente: ${validation.calledCustomer ? `Sim (${validation.customerDetails?.name}, Matrícula: ${validation.customerDetails?.matricula})` : 'Não'}
-- Saques: ${validation.saques ? 'Validado' : 'Pendente'}
-- Depósitos: ${validation.depositos ? 'Validado' : 'Pendente'}
-- Sensoriamento: ${validation.sensoriamento ? 'Validado' : 'Pendente'}
-- SmartPower: ${validation.smartPower ? 'Validado' : 'Pendente'}
+- Avaliou Equipamento: ${validation.evaluatedEquipment ? 'Sim' : 'Não'}
+- Dispensador: ${getStatusText(validation.dispenser)}
+- Depositário: ${getStatusText(validation.depositary)}
+- Leitor de Código de Barras: ${getStatusText(validation.barcodeReader)}
+- Impressora: ${getStatusText(validation.printer)}
+- Depositário de Cheques: ${getStatusText(validation.checkDepositary)}
+- Sensoriamento: ${getStatusText(validation.sensoriamento)}
+- SmartPower: ${getStatusText(validation.smartPower)}
 - Fechamento Autorizado por: ${validation.closureAuth.name || '________'} (${validation.closureAuth.department || '________'})
 
 Atenciosamente,
@@ -206,16 +221,31 @@ Equipe de Qualidade L1`;
           </h3>
           
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-              <span className="text-sm font-medium text-slate-700">Ligou para o cliente?</span>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => setValidation({...validation, calledCustomer: !validation.calledCustomer})}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${validation.calledCustomer ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-600'}`}
-              >
-                {validation.calledCustomer ? 'SIM' : 'NÃO'}
-              </button>
+            {/* Toggles Principais */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <span className="text-xs font-bold text-slate-700">Ligou para o cliente?</span>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => setValidation({...validation, calledCustomer: !validation.calledCustomer})}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${validation.calledCustomer ? 'bg-green-600 text-white shadow-lg shadow-green-200' : 'bg-slate-200 text-slate-600'}`}
+                >
+                  {validation.calledCustomer ? 'SIM' : 'NÃO'}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                <span className="text-xs font-bold text-slate-700">Avaliou equipamento?</span>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => setValidation({...validation, evaluatedEquipment: !validation.evaluatedEquipment})}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${validation.evaluatedEquipment ? 'bg-green-600 text-white shadow-lg shadow-green-200' : 'bg-slate-200 text-slate-600'}`}
+                >
+                  {validation.evaluatedEquipment ? 'SIM' : 'NÃO'}
+                </button>
+              </div>
             </div>
 
             {validation.calledCustomer && (
@@ -245,23 +275,34 @@ Equipe de Qualidade L1`;
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
-               {['saques', 'depositos', 'sensoriamento', 'smartPower'].map((field) => (
-                 <label key={field} className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
+            {/* Grid de Hardware e Validações Técnicas */}
+            <div className="grid grid-cols-2 gap-2">
+               {[
+                 { id: 'dispenser', label: 'Dispensador' },
+                 { id: 'depositary', label: 'Depositário' },
+                 { id: 'barcodeReader', label: 'Leitor Código Barras' },
+                 { id: 'printer', label: 'Impressora' },
+                 { id: 'checkDepositary', label: 'Depositário Cheques' },
+                 { id: 'sensoriamento', label: 'Sensoriamento' },
+                 { id: 'smartPower', label: 'SmartPower' }
+               ].map((item) => (
+                 <label key={item.id} className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200">
                    <input
                     type="checkbox"
                     disabled={loading}
-                    className="w-4 h-4 text-blue-600 rounded"
-                    checked={(validation as any)[field]}
-                    onChange={(e) => setValidation({...validation, [field]: e.target.checked})}
+                    className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                    checked={(validation as any)[item.id]}
+                    onChange={(e) => setValidation({...validation, [item.id]: e.target.checked})}
                    />
-                   <span className="text-xs font-medium text-slate-700 capitalize">{field}</span>
+                   <span className="text-[10px] font-bold text-slate-700 uppercase">{item.label}</span>
                  </label>
                ))}
             </div>
 
             <div className="space-y-1.5 pt-2">
-              <label className="text-xs font-bold text-slate-500 uppercase">Fechamento Autorizado / Pedido</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                <CheckCircle2 size={12} /> Fechamento Autorizado / Pedido
+              </label>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="text"
@@ -287,7 +328,7 @@ Equipe de Qualidade L1`;
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:bg-blue-400"
+          className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:bg-blue-400 shadow-lg shadow-blue-200"
         >
           {loading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
           {loading ? 'Salvando...' : 'Salvar Registro'}
@@ -319,7 +360,7 @@ Equipe de Qualidade L1`;
             </div>
           </div>
 
-          <div className="flex-grow p-6 bg-slate-50 rounded-xl border border-slate-100 font-mono text-sm text-slate-700 whitespace-pre-wrap leading-relaxed overflow-y-auto max-h-[500px]">
+          <div className="flex-grow p-6 bg-slate-50 rounded-xl border border-slate-100 font-mono text-sm text-slate-700 whitespace-pre-wrap leading-relaxed overflow-y-auto max-h-[600px]">
             {emailBody}
           </div>
           
