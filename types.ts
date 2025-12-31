@@ -15,6 +15,8 @@ export interface CallValidation {
   checkDepositary: boolean;
   sensoriamento: boolean;
   smartPower: boolean;
+  nat: boolean; // Novo campo: Não Atendimento
+  sw: boolean;  // Novo campo: Software/Sistema
   observation: string;
   closureAuth: {
     name: string;

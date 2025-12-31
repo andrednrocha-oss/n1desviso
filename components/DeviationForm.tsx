@@ -14,7 +14,9 @@ import {
   Loader2,
   FileText,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Cpu,
+  Settings
 } from 'lucide-react';
 
 const ESCALATIONS: EscalationLevel[] = ['1ª Escalada', '2ª Escalada', '3ª Escalada', '4ª Escalada', '5ª Escalada'];
@@ -52,6 +54,8 @@ const DeviationForm: React.FC<DeviationFormProps> = ({ onSuccess, initialData })
     checkDepositary: false,
     sensoriamento: false,
     smartPower: false,
+    nat: false,
+    sw: false,
     observation: '',
     closureAuth: { name: '', department: '' },
   });
@@ -98,7 +102,19 @@ const DeviationForm: React.FC<DeviationFormProps> = ({ onSuccess, initialData })
     }
   };
 
-  const getStatusText = (val: boolean) => val ? 'Validado' : 'Pendente';
+  const hardwareFailuresList = [
+    { id: 'dispenser', label: 'Dispensador' },
+    { id: 'depositary', label: 'Depositário' },
+    { id: 'barcodeReader', label: 'Leitor de Código de Barras' },
+    { id: 'printer', label: 'Impressora' },
+    { id: 'checkDepositary', label: 'Depositário de Cheques' },
+    { id: 'sensoriamento', label: 'Sensoriamento' },
+    { id: 'smartPower', label: 'SmartPower' },
+    { id: 'nat', label: 'NAT (Não Atendimento)' },
+    { id: 'sw', label: 'SW (Software/Sistema)' }
+  ].filter(item => (validation as any)[item.id])
+   .map(item => `- Falha Identificada: ${item.label}`)
+   .join('\n');
 
   const emailBody = `Olá, prezados responsáveis,
 
@@ -111,18 +127,14 @@ Dados do Chamado:
 - Escalada: ${formData.escalationLevel}
 - Data de Fechamento: ${new Date(formData.closingDate).toLocaleDateString('pt-BR')}
 
-Motivos do Desvio / Validações:
+Validações de Contato:
 - Ligou para o Cliente: ${validation.calledCustomer ? `Sim (${validation.customerDetails?.name}, Matrícula: ${validation.customerDetails?.matricula})` : 'Não'}
 - Avaliou Equipamento: ${validation.evaluatedEquipment ? 'Sim' : 'Não'}
-- Dispensador: ${getStatusText(validation.dispenser)}
-- Depositário: ${getStatusText(validation.depositary)}
-- Leitor de Código de Barras: ${getStatusText(validation.barcodeReader)}
-- Impressora: ${getStatusText(validation.printer)}
-- Depositário de Cheques: ${getStatusText(validation.checkDepositary)}
-- Sensoriamento: ${getStatusText(validation.sensoriamento)}
-- SmartPower: ${getStatusText(validation.smartPower)}
 
-Observações:
+Motivos do Desvio (Falhas Identificadas):
+${hardwareFailuresList || 'Nenhum motivo específico selecionado.'}
+
+Observações Adicionais:
 ${validation.observation || 'Nenhuma observação adicional.'}
 
 Fechamento Autorizado por: ${validation.closureAuth.name || '________'} (${validation.closureAuth.department || '________'})
@@ -138,14 +150,12 @@ Equipe de Qualidade L1`;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in duration-500">
-      {/* Registration Form */}
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
           {initialData ? <RotateCcw className="text-blue-600" size={24} /> : <Send className="text-blue-600" size={24} />}
           {initialData ? 'Atualizar Registro' : 'Novo Registro de Desvio'}
         </h2>
 
-        {/* Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
@@ -221,7 +231,6 @@ Equipe de Qualidade L1`;
           />
         </div>
 
-        {/* Motivo do Desvio Section */}
         <div className="space-y-4 pt-4 border-t border-slate-100">
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
             <AlertTriangle size={20} className="text-amber-600" />
@@ -282,27 +291,36 @@ Equipe de Qualidade L1`;
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-2">
-               {[
-                 { id: 'dispenser', label: 'Dispensador' },
-                 { id: 'depositary', label: 'Depositário' },
-                 { id: 'barcodeReader', label: 'Leitor Código Barras' },
-                 { id: 'printer', label: 'Impressora' },
-                 { id: 'checkDepositary', label: 'Depositário Cheques' },
-                 { id: 'sensoriamento', label: 'Sensoriamento' },
-                 { id: 'smartPower', label: 'SmartPower' }
-               ].map((item) => (
-                 <label key={item.id} className="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200">
-                   <input
-                    type="checkbox"
-                    disabled={loading}
-                    className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
-                    checked={(validation as any)[item.id]}
-                    onChange={(e) => setValidation({...validation, [item.id]: e.target.checked})}
-                   />
-                   <span className="text-[10px] font-bold text-slate-700 uppercase">{item.label}</span>
-                 </label>
-               ))}
+            <div className="bg-slate-50 p-4 rounded-xl space-y-3">
+              <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                <Cpu size={12} /> Componentes com Desvios (Marque a Falha)
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                 {[
+                   { id: 'dispenser', label: 'Dispensador' },
+                   { id: 'depositary', label: 'Depositário' },
+                   { id: 'barcodeReader', label: 'Leitor Código Barras' },
+                   { id: 'printer', label: 'Impressora' },
+                   { id: 'checkDepositary', label: 'Depositário Cheques' },
+                   { id: 'sensoriamento', label: 'Sensoriamento' },
+                   { id: 'smartPower', label: 'SmartPower' },
+                   { id: 'nat', label: 'NAT', isSpecial: true },
+                   { id: 'sw', label: 'SW', isSpecial: true }
+                 ].map((item) => (
+                   <label key={item.id} className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer transition-all border ${ (validation as any)[item.id] ? 'bg-red-50 border-red-200 ring-1 ring-red-100' : 'bg-white border-slate-100 hover:bg-slate-50' }`}>
+                     <input
+                      type="checkbox"
+                      disabled={loading}
+                      className="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500"
+                      checked={(validation as any)[item.id]}
+                      onChange={(e) => setValidation({...validation, [item.id]: e.target.checked})}
+                     />
+                     <span className={`text-[10px] font-bold uppercase ${ (validation as any)[item.id] ? 'text-red-700' : 'text-slate-600' }`}>
+                       {item.label}
+                     </span>
+                   </label>
+                 ))}
+              </div>
             </div>
 
             <div className="space-y-1.5 pt-2">
@@ -366,7 +384,6 @@ Equipe de Qualidade L1`;
         </div>
       </form>
 
-      {/* Email Preview */}
       <div className="space-y-6">
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full sticky top-24">
           <div className="flex items-center justify-between mb-6">
@@ -396,7 +413,7 @@ Equipe de Qualidade L1`;
           </div>
           
           <p className="mt-4 text-xs text-slate-400 italic">
-            * O texto acima é atualizado em tempo real conforme você preenche o formulário.
+            * Somente os itens marcados como desvio aparecem no corpo do e-mail.
           </p>
         </div>
       </div>
