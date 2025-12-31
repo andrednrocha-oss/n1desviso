@@ -15,6 +15,7 @@ export interface CallValidation {
   checkDepositary: boolean;
   sensoriamento: boolean;
   smartPower: boolean;
+  observation: string;
   closureAuth: {
     name: string;
     department: string;
@@ -23,7 +24,7 @@ export interface CallValidation {
 
 export interface Deviation {
   id: string;
-  analystName: string;
+  technicianName: string;
   escalationLevel: EscalationLevel;
   ticketNumber: string;
   location: string;

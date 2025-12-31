@@ -20,6 +20,24 @@ export const saveDeviation = async (deviation: Deviation): Promise<void> => {
   }
 };
 
+export const updateDeviation = async (deviation: Deviation): Promise<void> => {
+  if (!supabase) {
+    const existing = await getDeviations();
+    const updated = existing.map(d => d.id === deviation.id ? deviation : d);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+    return;
+  }
+
+  const { error } = await supabase
+    .from('deviations')
+    .update(deviation)
+    .eq('id', deviation.id);
+
+  if (error) {
+    throw error;
+  }
+};
+
 export const getDeviations = async (): Promise<Deviation[]> => {
   if (!supabase) {
     const data = localStorage.getItem(LOCAL_STORAGE_KEY);

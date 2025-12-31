@@ -4,12 +4,29 @@ import { LayoutDashboard, FilePlus2, ChevronRight, Activity, Cloud, CloudOff } f
 import DeviationForm from './components/DeviationForm.tsx';
 import Dashboard from './components/Dashboard.tsx';
 import { supabase } from './services/supabase.ts';
+import { Deviation } from './types.ts';
 
 type View = 'form' | 'dashboard';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('dashboard');
+  const [editingDeviation, setEditingDeviation] = useState<Deviation | null>(null);
   const isOnline = !!supabase;
+
+  const handleEdit = (deviation: Deviation) => {
+    setEditingDeviation(deviation);
+    setActiveView('form');
+  };
+
+  const handleFormSuccess = () => {
+    setEditingDeviation(null);
+    setActiveView('dashboard');
+  };
+
+  const handleNewRecord = () => {
+    setEditingDeviation(null);
+    setActiveView('form');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -61,9 +78,9 @@ const App: React.FC = () => {
                 <span className="hidden sm:inline">Dashboard</span>
               </button>
               <button
-                onClick={() => setActiveView('form')}
+                onClick={handleNewRecord}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  activeView === 'form' 
+                  activeView === 'form' && !editingDeviation
                   ? 'bg-blue-50 text-blue-700' 
                   : 'text-slate-600 hover:bg-slate-50'
                 }`}
@@ -83,18 +100,25 @@ const App: React.FC = () => {
             <span>DeviTrack</span>
             <ChevronRight size={14} />
             <span className="font-medium text-slate-700">
-              {activeView === 'dashboard' ? 'Dashboard Estatístico' : 'Registrar Novo Desvio'}
+              {activeView === 'dashboard' 
+                ? 'Dashboard Estatístico' 
+                : editingDeviation ? 'Editar Registro' : 'Registrar Novo Desvio'}
             </span>
           </div>
           <h2 className="text-2xl font-bold text-slate-900">
-            {activeView === 'dashboard' ? 'Visão Geral de Desvios' : 'Abertura de Ocorrência'}
+            {activeView === 'dashboard' 
+              ? 'Visão Geral de Desvios' 
+              : editingDeviation ? `Editando: ${editingDeviation.ticketNumber}` : 'Abertura de Ocorrência'}
           </h2>
         </div>
 
         {activeView === 'form' ? (
-          <DeviationForm onSuccess={() => setActiveView('dashboard')} />
+          <DeviationForm 
+            onSuccess={handleFormSuccess} 
+            initialData={editingDeviation || undefined} 
+          />
         ) : (
-          <Dashboard />
+          <Dashboard onEdit={handleEdit} />
         )}
       </main>
 
