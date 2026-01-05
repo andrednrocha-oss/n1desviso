@@ -36,6 +36,13 @@ import {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b', '#0ea5e9', '#f43f5e'];
 
+// Função auxiliar para formatar data YYYY-MM-DD para DD/MM/YYYY sem problemas de fuso
+const formatDateDisplay = (dateStr: string) => {
+  if (!dateStr) return '________';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+};
+
 interface DashboardProps {
   onEdit: (deviation: Deviation) => void;
 }
@@ -150,7 +157,7 @@ Dados do Chamado:
 - Chamado: ${d.ticketNumber}
 - Local: ${d.location}
 - Escalada: ${d.escalationLevel}
-- Data de Fechamento: ${new Date(d.closingDate).toLocaleDateString('pt-BR')}
+- Data de Fechamento: ${formatDateDisplay(d.closingDate)}
 
 Validações de Contato:
 - Ligou para o Cliente: ${d.validation.calledCustomer ? `Sim (${d.validation.customerDetails?.name}, Matrícula: ${d.validation.customerDetails?.matricula})` : 'Não'}
@@ -300,7 +307,7 @@ Equipe de Qualidade L1`;
             <tbody className="divide-y divide-slate-100">
               {filteredData.map((d) => (
                 <tr key={d.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-slate-600">{new Date(d.closingDate).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600">{formatDateDisplay(d.closingDate)}</td>
                   <td className="px-6 py-4 text-sm text-slate-900 font-bold">{d.technicianName}</td>
                   <td className="px-6 py-4"><span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-[10px] font-bold border border-blue-100">{d.ticketNumber}</span></td>
                   <td className="px-6 py-4 text-sm text-slate-500">{d.location}</td>
@@ -342,6 +349,10 @@ Equipe de Qualidade L1`;
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Escalada</p>
                   <p className="font-bold text-slate-900">{selectedDeviation.escalationLevel}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data de Fechamento</p>
+                  <p className="font-bold text-slate-900">{formatDateDisplay(selectedDeviation.closingDate)}</p>
                 </div>
               </div>
 

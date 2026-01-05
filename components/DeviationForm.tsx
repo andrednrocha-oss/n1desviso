@@ -28,6 +28,13 @@ const generateId = () => {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 };
 
+// Função auxiliar para formatar data YYYY-MM-DD para DD/MM/YYYY sem problemas de fuso
+const formatDateDisplay = (dateStr: string) => {
+  if (!dateStr) return '________';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+};
+
 interface DeviationFormProps {
   onSuccess: () => void;
   initialData?: Deviation;
@@ -125,7 +132,7 @@ Dados do Chamado:
 - Chamado: ${formData.ticketNumber || '________'}
 - Local: ${formData.location || '________'}
 - Escalada: ${formData.escalationLevel}
-- Data de Fechamento: ${new Date(formData.closingDate).toLocaleDateString('pt-BR')}
+- Data de Fechamento: ${formatDateDisplay(formData.closingDate)}
 
 Validações de Contato:
 - Ligou para o Cliente: ${validation.calledCustomer ? `Sim (${validation.customerDetails?.name}, Matrícula: ${validation.customerDetails?.matricula})` : 'Não'}
