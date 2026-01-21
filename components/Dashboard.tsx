@@ -21,7 +21,12 @@ import {
   Loader2, 
   DatabaseZap, 
   Cpu,
-  Calendar
+  Calendar,
+  X,
+  Ticket,
+  ChevronRight,
+  Eye,
+  ArrowRight
 } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b', '#0ea5e9', '#f43f5e'];
@@ -42,6 +47,12 @@ const MONTHS = [
   { value: '12', label: 'Dezembro' }
 ];
 
+const formatDateDisplay = (dateStr: string) => {
+  if (!dateStr) return '________';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+};
+
 interface DashboardProps {
   onEdit: (deviation: Deviation) => void;
 }
@@ -50,6 +61,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [data, setData] = useState<Deviation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [techDetailName, setTechDetailName] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -123,6 +135,14 @@ const Dashboard: React.FC<DashboardProps> = () => {
     };
   }, [filteredData]);
 
+  // Registros específicos do técnico selecionado para o drill-down
+  const techRecords = useMemo(() => {
+    if (!techDetailName) return [];
+    return filteredData.filter(d => d.technicianName === techDetailName);
+  }, [filteredData, techDetailName]);
+
+  const currentMonthLabel = MONTHS.find(m => m.value === selectedMonth)?.label || '';
+
   if (loading && data.length === 0) {
     return (
       <div className="h-64 flex flex-col items-center justify-center text-slate-500 gap-4">
@@ -145,7 +165,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
           <select 
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 w-full appearance-none cursor-pointer"
+            className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 w-full appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
           >
             {MONTHS.map(m => (
               <option key={m.value} value={m.value}>{m.label}</option>
@@ -221,11 +241,17 @@ const Dashboard: React.FC<DashboardProps> = () => {
           <div className="space-y-4">
             {stats.technicianRanking.length > 0 ? (
               stats.technicianRanking.slice(0, 5).map((tech, idx) => (
-                <div key={tech.name} className="flex items-center gap-3">
+                <div key={tech.name} className="flex items-center gap-3 group">
                   <span className="w-6 h-6 flex items-center justify-center bg-slate-100 rounded-full text-[10px] font-bold text-slate-500">{idx + 1}</span>
                   <div className="flex-grow">
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-slate-700">{tech.name}</span>
+                      <button 
+                        onClick={() => setTechDetailName(tech.name)}
+                        className="text-sm font-medium text-slate-700 hover:text-blue-600 hover:underline transition-all text-left flex items-center gap-1.5"
+                      >
+                        {tech.name}
+                        <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
+                      </button>
                       <span className="text-sm font-bold text-slate-900">{tech.count}</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
@@ -243,8 +269,82 @@ const Dashboard: React.FC<DashboardProps> = () => {
               </div>
             )}
           </div>
+          {stats.technicianRanking.length > 5 && (
+             <p className="mt-4 text-[10px] text-slate-400 text-center uppercase font-bold tracking-wider">
+               Clique no nome do analista para ver detalhes
+             </p>
+          )}
         </div>
       </div>
+
+      {/* Modal de Detalhes do Técnico (Drill-down) */}
+      {techDetailName && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[80vh] flex flex-col">
+            <div className="p-6 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">{techDetailName}</h3>
+                  <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                    {techRecords.length} ocorrência(s) em {currentMonthLabel}
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setTechDetailName(null)} 
+                className="p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-slate-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex-grow overflow-y-auto p-4 space-y-3">
+              {techRecords.map((record) => (
+                <div 
+                  key={record.id} 
+                  className="p-4 bg-white border border-slate-100 rounded-2xl hover:border-blue-200 hover:shadow-md transition-all group relative"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1.5 bg-blue-50 text-blue-700 rounded-lg">
+                        <Ticket size={14} />
+                      </span>
+                      <span className="text-sm font-bold text-slate-900">{record.ticketNumber}</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">{formatDateDisplay(record.closingDate)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <MapPin size={12} className="text-slate-400" />
+                    <span>{record.location}</span>
+                  </div>
+                  
+                  {/* Badge de motivo rápido */}
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {record.validation.nat && <span className="px-1.5 py-0.5 bg-red-50 text-red-600 rounded text-[9px] font-bold border border-red-100 uppercase tracking-tighter">NAT</span>}
+                    {record.validation.sw && <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded text-[9px] font-bold border border-amber-100 uppercase tracking-tighter">SW</span>}
+                    {record.validation.dispenser && <span className="px-1.5 py-0.5 bg-slate-50 text-slate-600 rounded text-[9px] font-bold border border-slate-100 uppercase tracking-tighter">DISP</span>}
+                  </div>
+                </div>
+              ))}
+              
+              {techRecords.length === 0 && (
+                <div className="py-20 text-center text-slate-400 italic">
+                  Nenhum registro encontrado.
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-center">
+               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                 Acesse a aba Históricos para detalhes completos
+               </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
