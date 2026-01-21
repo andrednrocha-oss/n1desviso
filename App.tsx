@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, FilePlus2, ChevronRight, Activity, Cloud, CloudOff } from 'lucide-react';
+import { LayoutDashboard, FilePlus2, ChevronRight, Activity, Cloud, CloudOff, History as HistoryIcon } from 'lucide-react';
 import DeviationForm from './components/DeviationForm.tsx';
 import Dashboard from './components/Dashboard.tsx';
+import History from './components/History.tsx';
 import { supabase } from './services/supabase.ts';
 import { Deviation } from './types.ts';
 
-type View = 'form' | 'dashboard';
+type View = 'form' | 'dashboard' | 'history';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('dashboard');
@@ -65,10 +66,10 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center space-x-1 sm:space-x-4">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <button
                 onClick={() => setActiveView('dashboard')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
                   activeView === 'dashboard' 
                   ? 'bg-blue-50 text-blue-700' 
                   : 'text-slate-600 hover:bg-slate-50'
@@ -78,8 +79,19 @@ const App: React.FC = () => {
                 <span className="hidden sm:inline">Dashboard</span>
               </button>
               <button
+                onClick={() => setActiveView('history')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  activeView === 'history' 
+                  ? 'bg-blue-50 text-blue-700' 
+                  : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <HistoryIcon size={18} />
+                <span className="hidden sm:inline">Históricos</span>
+              </button>
+              <button
                 onClick={handleNewRecord}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
                   activeView === 'form' && !editingDeviation
                   ? 'bg-blue-50 text-blue-700' 
                   : 'text-slate-600 hover:bg-slate-50'
@@ -102,24 +114,28 @@ const App: React.FC = () => {
             <span className="font-medium text-slate-700">
               {activeView === 'dashboard' 
                 ? 'Dashboard Estatístico' 
-                : editingDeviation ? 'Editar Registro' : 'Registrar Novo Desvio'}
+                : activeView === 'history' 
+                  ? 'Histórico de Registros' 
+                  : editingDeviation ? 'Editar Registro' : 'Registrar Novo Desvio'}
             </span>
           </div>
           <h2 className="text-2xl font-bold text-slate-900">
             {activeView === 'dashboard' 
               ? 'Visão Geral de Desvios' 
-              : editingDeviation ? `Editando: ${editingDeviation.ticketNumber}` : 'Abertura de Ocorrência'}
+              : activeView === 'history'
+                ? 'Base de Dados de Ocorrências'
+                : editingDeviation ? `Editando: ${editingDeviation.ticketNumber}` : 'Abertura de Ocorrência'}
           </h2>
         </div>
 
-        {activeView === 'form' ? (
+        {activeView === 'form' && (
           <DeviationForm 
             onSuccess={handleFormSuccess} 
             initialData={editingDeviation || undefined} 
           />
-        ) : (
-          <Dashboard onEdit={handleEdit} />
         )}
+        {activeView === 'dashboard' && <Dashboard onEdit={handleEdit} />}
+        {activeView === 'history' && <History onEdit={handleEdit} />}
       </main>
 
       {/* Footer */}
